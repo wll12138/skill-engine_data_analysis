@@ -58,14 +58,14 @@ engine-data-analysis/
 │   └── engine_analysis.py            # 核心分析模块
 ├── references/
 │   └── etas_inca_signals.md          # ETAS INCA 信号命名规范
-└── baseline engine databasse/
+└── baseline engine database/
     └── 260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx  # 对标基准数据库
 ```
 
 ## 更新日志
 
 ### 2026-06-03 — docs: update file structure for baseline engine database
-- 标准数据文件移入 `baseline engine databasse/` 子目录
+- 标准数据文件移入 `baseline engine database/` 子目录
 - 同步更新 `_B15HE_STANDARD_PATH` 模块内文件路径
 - README 文件结构更新
 
