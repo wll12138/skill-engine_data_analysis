@@ -43,7 +43,7 @@ DEFAULT_RPM_POINTS = [1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
 # 列名关键词映射 (检测顺序 = 优先匹配顺序)
 COLUMN_PATTERNS = {
     "rpm":     ["转速", "rpm", "RPM", "SPEED", "EngineSpeed", "DynoSpeed", "Epm_nEng"],
-    "torque":  ["扭矩", "Torque", "TORQUE", "DynoTorque"],
+    "torque":  ["修正扭矩", "CorrTorque", "CorrTorqueEWG", "扭矩", "Torque", "TORQUE", "DynoTorque"],
     "bsfc":    ["BSFC", "燃油消耗率", "FuelCOSP", "FB_RATE"],
     "turbo_speed": ["增压器转速", "TURBOSPEED", "Trbch_N", "TurboSpeed",
                     "turbine", "Turbo", "涡轮转速"],
@@ -55,7 +55,7 @@ COLUMN_PATTERNS = {
     "wg":      ["WG开度", "WG", "wg", "wastegate", "EWGC_rActlPos",
                 "EWGC_rPosDsrd", "BCEW_rDesWGPos"],
     "airflow": ["进气流量", "AirFlow", "AFS_dm", "air", "流量"],
-    "power":   ["功率", "Power", "POWER", "BrakePower"],
+    "power":   ["修正功率", "CorrBrkPwr", "CorrBrkPwrEWG", "功率", "Power", "POWER", "BrakePower"],
     "intake_temp": ["进气温度", "进气歧管温度", "T_Intake", "T_AIR", "T_AIR_IN",
                     "T_ACS"],
     # 燃烧特性相关
@@ -365,7 +365,7 @@ def compare_turbochargers(df_a: pd.DataFrame, df_b: pd.DataFrame,
           - names: (name_a, name_b)
 
     用法:
-        results = compare_turbochargers(df_a, df_b, "博马", "奕森")
+        results = compare_turbochargers(df_a, df_b, "方案A", "方案B")
         print(results["summary"])
         print(results["scores"])
     """
@@ -599,7 +599,7 @@ def assess_high_altitude(df_a: pd.DataFrame, df_b: pd.DataFrame,
         Dict 包含高原评估结果
 
     用法:
-        ha = assess_high_altitude(df_a, df_b, "博马", "奕森",
+        ha = assess_high_altitude(df_a, df_b, "方案A", "方案B",
                                   altitude_m=3000)
     """
     rpm_col = rpm_col or detect_column(df_a, "rpm")
@@ -975,7 +975,7 @@ def full_analysis(filepath: str,
 
     用法 (快捷方式):
         out = full_analysis("260601-增压器对比数据.xlsx",
-                            "博马", "奕森", n_points=9)
+                            "方案A", "方案B", n_points=9)
         print(out["report"])
     """
     print(f"{'='*60}")
@@ -2175,6 +2175,235 @@ def compare_with_b15he_standard(
     return result
 
 
+
+
+# ────────────────────────────────────────────────────────────
+# 通用标准数据对比框架
+# ────────────────────────────────────────────────────────────
+
+def load_standard_data(filepath: str, sheet_name: str = None,
+                       col_map: Optional[Dict[str, int]] = None
+                       ) -> Optional[pd.DataFrame]:
+    """加载发动机标准数据文件（通用版本）。
+
+    Args:
+        filepath: 标准数据 Excel 路径
+        sheet_name: Sheet 名，None 则自动检测
+        col_map: 列索引映射 {rpm/torque/power/bsfc: index}，None 则自动检测
+
+    Returns:
+        DataFrame 或 None（加载失败时）
+
+    用法:
+        # 加载指定发动机标准数据
+        std = load_standard_data("发动机标准数据.xlsx")
+        std = load_standard_data("标准.xlsx", sheet_name="外特性",
+                                 col_map={"rpm": 4, "torque": 9, "power": 8, "bsfc": 13})
+    """
+    p = Path(filepath)
+    if not p.exists():
+        print(f"[WARNING] 标准数据文件不存在: {filepath}")
+        return None
+
+    try:
+        df = pd.read_excel(str(p), sheet_name=sheet_name, header=0)
+        # 清理列名后缀
+        df.columns = [str(c).split("\\")[0].strip() for c in df.columns]
+        return df
+    except Exception as e:
+        print(f"[WARNING] 加载标准数据失败: {e}")
+        return None
+
+
+def compare_with_standard(
+    test_rpm: np.ndarray,
+    test_torque: np.ndarray,
+    test_power: Optional[np.ndarray] = None,
+    test_bsfc: Optional[np.ndarray] = None,
+    standard_df: Optional[pd.DataFrame] = None,
+    col_map: Optional[Dict[str, str]] = None,
+    name: str = "测试",
+    standard_name: str = "标准",
+) -> Dict:
+    """通用发动机外特性（WOT）标准数据对比。
+
+    对比测试数据与标准数据的扭矩/功率/BSFC，输出各转速点的
+    绝对差值、百分比差值，以及综合结论。
+
+    Args:
+        test_rpm: 测试数据转速数组
+        test_torque: 测试数据扭矩数组 (Nm)
+        test_power: 测试数据功率数组 (kW)，None 则跳过
+        test_bsfc: 测试数据 BSFC 数组 (g/kWh)，None 则跳过
+        standard_df: 标准数据 DataFrame
+        col_map: 标准数据列名映射，如 {"rpm":"DynoSpeed_Avg","torque":"DynoTorque_Avg"}
+                默认自动检测列名
+        name: 测试方名称 (默认 "测试")
+        standard_name: 标准方名称 (默认 "标准")
+
+    Returns:
+        dict: comparison_points, summary, report
+
+    用法:
+        std = load_standard_data("标准.xlsx")
+        result = compare_with_standard(test_rpm, test_torque, test_power, test_bsfc, std)
+        print(result["report"])
+    """
+    if standard_df is None:
+        return {"report": f"[{standard_name} 标准数据未加载，跳过对比]"}
+
+    # 检测标准数据列
+    if col_map:
+        std_rpm_col = col_map.get("rpm")
+        std_torque_col = col_map.get("torque")
+        std_power_col = col_map.get("power")
+        std_bsfc_col = col_map.get("bsfc")
+    else:
+        std_rpm_col = detect_column(standard_df, "rpm")
+        std_torque_col = detect_column(standard_df, "torque")
+        std_power_col = detect_column(standard_df, "power")
+        std_bsfc_col = detect_column(standard_df, "bsfc")
+
+    if std_rpm_col is None or std_torque_col is None:
+        return {"report": f"[错误: 无法从标准数据中检测转速/扭矩列，跳过对比]"}
+
+    # 提取标准数据
+    std_rpm = pd.to_numeric(standard_df[std_rpm_col], errors="coerce").values
+    std_torque = pd.to_numeric(standard_df[std_torque_col], errors="coerce").values
+    std_power = (pd.to_numeric(standard_df[std_power_col], errors="coerce").values
+                 if std_power_col else None)
+    std_bsfc = (pd.to_numeric(standard_df[std_bsfc_col], errors="coerce").values
+                if std_bsfc_col else None)
+
+    # 清理无效数据
+    valid = ~(np.isnan(std_rpm) | np.isnan(std_torque))
+    std_rpm = std_rpm[valid]
+    std_torque = std_torque[valid]
+    if std_power is not None:
+        std_power = std_power[valid]
+    if std_bsfc is not None:
+        std_bsfc = std_bsfc[valid]
+
+    # 按 RPM 排序
+    idx = np.argsort(std_rpm)
+    std_rpm = std_rpm[idx]; std_torque = std_torque[idx]
+    if std_power is not None: std_power = std_power[idx]
+    if std_bsfc is not None: std_bsfc = std_bsfc[idx]
+
+    # 筛选测试数据
+    mask = (test_rpm > 0) & (test_torque > 0)
+    tr = test_rpm[mask]; tt = test_torque[mask]
+    tp = (test_power[mask] if test_power is not None
+          else tt * tr / 9549)    # 功率自动计算
+    tb = test_bsfc[mask] if test_bsfc is not None else None
+
+    # 逐点对比（插值）
+    comparison_points = []
+    for i in range(len(tr)):
+        rpm_i = tr[i]
+        std_tq = _interp_at_rpm(std_rpm, std_torque, rpm_i)
+        std_pw = _interp_at_rpm(std_rpm, std_power, rpm_i) if std_power is not None else None
+        std_bsfc_i = _interp_at_rpm(std_rpm, std_bsfc, rpm_i) if std_bsfc is not None else None
+
+        point = {
+            "rpm": round(rpm_i, 0),
+            "test_torque": round(tt[i], 1),
+            "std_torque": round(std_tq, 1) if std_tq else None,
+            "torque_diff": round(tt[i] - std_tq, 1) if std_tq else None,
+            "torque_diff_pct": round((tt[i] - std_tq) / std_tq * 100, 1)
+                if std_tq and std_tq != 0 else None,
+            "test_power": round(tp[i], 1),
+            "std_power": round(std_pw, 1) if std_pw else None,
+            "power_diff": round(tp[i] - std_pw, 1) if std_pw else None,
+        }
+        if tb is not None and std_bsfc_i is not None:
+            point["test_bsfc"] = round(tb[i], 1)
+            point["std_bsfc"] = round(std_bsfc_i, 1)
+            point["bsfc_diff"] = round(tb[i] - std_bsfc_i, 1)
+        comparison_points.append(point)
+
+    # 汇总
+    summary = {}
+    torque_diffs = [p["torque_diff"] for p in comparison_points if p["torque_diff"] is not None]
+    power_diffs = [p["power_diff"] for p in comparison_points if p["power_diff"] is not None]
+
+    if torque_diffs:
+        summary["torque"] = {
+            "mean_diff": round(np.mean(torque_diffs), 1),
+            "max_gain": round(max(torque_diffs), 1),
+            "max_loss": round(min(torque_diffs), 1),
+            "avg_diff_pct": round(np.mean([p["torque_diff_pct"] for p in comparison_points
+                                            if p["torque_diff_pct"] is not None]), 1),
+        }
+    if power_diffs:
+        summary["power"] = {
+            "mean_diff": round(np.mean(power_diffs), 1),
+            "max_gain": round(max(power_diffs), 1),
+            "max_loss": round(min(power_diffs), 1),
+        }
+
+    bsfc_diffs = [p.get("bsfc_diff") for p in comparison_points if p.get("bsfc_diff") is not None]
+    if bsfc_diffs:
+        summary["bsfc"] = {
+            "mean_diff": round(np.mean(bsfc_diffs), 1),
+            "n_test_lower": sum(1 for d in bsfc_diffs if d < 0),
+            "n_test_higher": sum(1 for d in bsfc_diffs if d > 0),
+        }
+
+    # 报告
+    lines = [
+        "=" * 60,
+        f" {standard_name} 标准数据对比",
+        "=" * 60, "",
+        f"外特性 (WOT) 对比: {name} vs {standard_name}", "",
+    ]
+    has_header = True
+    for p in comparison_points:
+        if has_header:
+            h = f"{'RPM':>8} | {'扭矩测试':>8} | {'扭矩标准':>8} | {'差值':>8} | {'差%':>7}"
+            h += f" | {'功率测试':>8} | {'功率标准':>8} | {'功率差':>8}"
+            if "test_bsfc" in p:
+                h += f" | {'BSFC测试':>10} | {'BSFC标准':>10} | {'BSFC差':>9}"
+            lines.append(h)
+            lines.append("-" * (88 if "test_bsfc" not in p else 126))
+            has_header = False
+
+        line = (f"{p['rpm']:>8.0f} | {p['test_torque']:>8.1f} | "
+                f"{p['std_torque'] or '-':>8} | {p['torque_diff'] or '-':>8} | "
+                f"{p['torque_diff_pct'] or '-':>7} | {p['test_power']:>8.1f} | "
+                f"{p['std_power'] or '-':>8} | {p['power_diff'] or '-':>8}")
+        if "test_bsfc" in p and p["test_bsfc"] is not None:
+            line += (f" | {p['test_bsfc']:>10.1f} | {p.get('std_bsfc', 0):>10.1f} | "
+                     f"{p.get('bsfc_diff', 0):>+9.1f}")
+        lines.append(line)
+
+    lines.append("")
+    lines.append("--- 综合结论 ---")
+    if "torque" in summary:
+        s = summary["torque"]
+        lines.append(f"  扭矩: 平均 {s['mean_diff']:+.1f} Nm ({s['avg_diff_pct']:+.1f}%), "
+                     f"最大增益 {s['max_gain']:+.1f} Nm, 最大损失 {s['max_loss']:+.1f} Nm")
+    if "power" in summary:
+        s = summary["power"]
+        lines.append(f"  功率: 平均 {s['mean_diff']:+.1f} kW, "
+                     f"最大增益 {s['max_gain']:+.1f} kW, 最大损失 {s['max_loss']:+.1f} kW")
+    if "bsfc" in summary:
+        s = summary["bsfc"]
+        lines.append(f"  BSFC: 平均 {s['mean_diff']:+.1f} g/kWh "
+                     f"(负值={name}油耗更低，更好)")
+        verdict = "优秀" if s["n_test_lower"] > len(bsfc_diffs) * 0.5 else "需关注"
+        lines.append(f"  {'✅' if verdict == '优秀' else '⚠️'} {verdict}: "
+                     f"{s['n_test_lower']}/{len(bsfc_diffs)} 个点油耗低于标准")
+
+    lines.append("")
+    return {
+        "standard_engine": standard_name,
+        "comparison_points": comparison_points,
+        "summary": summary,
+        "report": "\n".join(lines),
+    }
+
+
 # ─── 修改 single_engine_analysis 以支持标准对比 ───
 
 # (在函数调用后补充标准对比，通过外层包装函数实现)
@@ -2200,7 +2429,7 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) < 4:
         print("用法: python engine_analysis.py <file.xlsx> <名称A> <名称B> [行数]")
-        print("示例: python engine_analysis.py data.xlsx 博马 奕森 9")
+        print("示例: python engine_analysis.py data.xlsx 方案A 方案B 9")
         sys.exit(1)
 
     fp = sys.argv[1]
