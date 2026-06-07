@@ -428,6 +428,15 @@ python ~/.hermes/skills/data-science/engine-data-analysis/scripts/engine_analysi
     "数据文件.xlsx" "方案A" "方案B" 9
 ```
 
+## 维护与发布
+
+本 skill 的 GitHub 仓库：
+[johnhejunlin/skill-engine_data_analysis](https://github.com/johnhejunlin/skill-engine_data_analysis)
+
+每次更新本 skill 后必须同步执行：
+- 更新 `README.md`，记录功能、用法或文件结构变化
+- 将最新改动上传到上述 GitHub 仓库
+
 ## 常见问题
 
 ### Q: 列名检测不到怎么办？

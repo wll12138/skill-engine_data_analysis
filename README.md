@@ -62,7 +62,19 @@ engine-data-analysis/
     └── 260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx  # 对标基准数据库
 ```
 
+## 维护与发布
+
+GitHub 仓库：[johnhejunlin/skill-engine_data_analysis](https://github.com/johnhejunlin/skill-engine_data_analysis)
+
+每次更新本 skill 后必须：
+- 同步更新 `README.md`
+- 将最新改动上传到 GitHub 仓库
+
 ## 更新日志
+
+### 2026-06-07 — docs: add GitHub publish requirement
+- 记录 skill 的 GitHub 仓库地址
+- 明确每次更新 skill 后需同步更新 README 并上传到 GitHub
 
 ### 2026-06-03 — docs: update file structure for baseline engine database
 - 标准数据文件移入 `baseline engine database/` 子目录
