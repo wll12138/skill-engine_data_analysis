@@ -80,14 +80,19 @@ print(result["report"])
 
 ```
 engine-data-analysis/
-├── SKILL.md                          # Hermes Agent 技能描述
-├── README.md                         # 本文件
+├── SKILL.md                          # Skill 触发条件、入口和核心流程
+├── README.md                         # 仓库说明
+├── agents/
+│   └── openai.yaml                   # UI 元数据
 ├── scripts/
 │   └── engine_analysis.py            # 核心分析模块
+├── assets/
+│   └── baseline_engine_database/
+│       └── 260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx  # 对标基准数据库
 ├── references/
-│   └── etas_inca_signals.md          # ETAS INCA 信号命名规范
-└── baseline engine database/
-    └── 260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx  # 对标基准数据库
+│   ├── etas_inca_signals.md          # ETAS INCA 信号命名规范
+│   ├── workflows.md                  # 场景化分析工作流
+│   └── thresholds_and_formulas.md    # 阈值、公式、CSV 与列名参考
 ```
 
 ## 维护与发布
@@ -99,6 +104,13 @@ GitHub 仓库：[johnhejunlin/skill-engine_data_analysis](https://github.com/joh
 - 将最新改动上传到 GitHub 仓库
 
 ## 更新日志
+
+### 2026-06-07 — refactor: optimize skill structure
+- 精简 `SKILL.md`，保留触发条件、快速入口和核心工作流
+- 新增 `agents/openai.yaml` UI 元数据
+- 新增 `references/workflows.md` 和 `references/thresholds_and_formulas.md`
+- 将 B15HE 基准数据库移动到 `assets/baseline_engine_database/`
+- 同步更新 `_B15HE_STANDARD_PATH`
 
 ### 2026-06-07 — docs: add GitHub publish requirement
 - 记录 skill 的 GitHub 仓库地址

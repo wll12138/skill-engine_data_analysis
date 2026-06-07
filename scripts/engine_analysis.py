@@ -1929,8 +1929,8 @@ def single_engine_full_analysis(
 # B15HE 标准数据对比
 # ────────────────────────────────────────────────────────────
 
-# B15HE 标准数据文件路径 (SKILL 目录下的 Excel 文件)
-_B15HE_STANDARD_PATH = Path(__file__).parent.parent / "baseline engine database" / "260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx"
+# B15HE 标准数据文件路径 (SKILL assets 目录下的 Excel 文件)
+_B15HE_STANDARD_PATH = Path(__file__).parent.parent / "assets" / "baseline_engine_database" / "260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx"
 
 # 外特性列索引映射 (0-based)
 _B15HE_WOT_COL_MAP = {
