@@ -1,0 +1,7 @@
+interface:
+  display_name: "Engine Data Analysis"
+  short_description: "分析发动机台架、燃烧与增压器数据"
+  default_prompt: "Use $engine-data-analysis to analyze this engine dyno dataset and summarize performance, combustion, BSFC, turbo margin, and benchmark gaps."
+
+policy:
+  allow_implicit_invocation: true
