@@ -80,7 +80,7 @@ print(sens["report"])
 print(sens["feature_importance"])
 ```
 
-分析管线：Pearson + Spearman + 互信息 + Random Forest + 偏依赖 + RPM/负荷分区 + 交叉验证。无 sklearn 时自动回退。输出 markdown 表格报告。
+分析管线：燃烧基线 → Pearson+Spearman+互信息 → Random Forest → RPM/负荷分区 → 偏依赖 → K-Fold 交叉验证 → 报告生成。无 sklearn 时自动回退。输出 markdown 表格报告。
 ```
 
 ## 支持的信号
@@ -121,9 +121,9 @@ GitHub 仓库：[johnhejunlin/skill-engine_data_analysis](https://github.com/joh
 ## 更新日志
 
 ### 2026-06-08 — feat: implement analyze_combustion_sensitivity (ML)
-- 实现 `analyze_combustion_sensitivity()` — 7 步 ML 管线（Pearson+Spearman+互信息+Random Forest+偏依赖+RPM/负荷分区+交叉验证），sklearn 可选，无 sklearn 自动回退
+- 实现 `analyze_combustion_sensitivity()` — 7 步 ML 管线（燃烧基线→Pearson+Spearman+互信息→RF→分区→偏依赖→CV→报告生成），sklearn 可选，无 sklearn 自动回退
 - 新增 `_merge_feature_importance()` 5 方法融合排名、`_build_ml_sensitivity_report()` 数据驱动分析报告（markdown 表格）
-- 修复 `_single_engine_performance_core` numpy `or` 崩溃、`max_power_rpm` KeyError、`_merge_feature_importance` fk 脱循环 bug、`_plot_ml_sensitivity` 缺 `import os`
+- 修复 `_single_engine_performance_core` numpy `or` 崩溃、`max_power_rpm` KeyError、`_merge_feature_importance` fk 脱循环 bug
 - 更新 `COLUMN_PATTERNS` 修复 ETAS INCA 常见误匹配（turbo_speed/spark_act/spark_mbt/imep/wg）
 - SKILL.md 精简场景选择、输出要求，与 workflows.md 去重
 - README.md 更新路径、功能列表、文件结构

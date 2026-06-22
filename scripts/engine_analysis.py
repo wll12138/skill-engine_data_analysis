@@ -42,36 +42,45 @@ DEFAULT_RPM_POINTS = [1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
 
 # 列名关键词映射 (检测顺序 = 优先匹配顺序)
 COLUMN_PATTERNS = {
-    "rpm":     ["转速", "rpm", "RPM", "SPEED", "EngineSpeed", "DynoSpeed", "Epm_nEng"],
-    "torque":  ["修正扭矩", "CorrTorque", "CorrTorqueEWG", "扭矩", "Torque", "TORQUE", "DynoTorque"],
+    "rpm":     ["DynoSpeed_Avg", "DynoSpeed", "转速", "rpm", "RPM", "SPEED", "EngineSpeed", "Epm_nEng"],
+    "torque":  ["DynoTorque_Avg", "DynoTorque", "修正扭矩", "CorrTorque", "CorrTorqueEWG", "扭矩", "Torque", "TORQUE"],
     "bsfc":    ["BSFC", "燃油消耗率", "FuelCOSP", "FB_RATE"],
-    "turbo_speed": ["增压器转速", "TURBOSPEED", "Trbch_N", "TurboSpeed",
-                    "turbine", "Turbo", "涡轮转速"],
-    "boost":   ["增压压力", "Boost", "BOOST", "BSTC_pActBoostPress",
-                "VBOOST", "P3", "P_Intake"],
-    "egt":     ["排气温度", "EGT", "egt", "exhaust", "T_EXH", "EXHT_tMnfdTemp",
-                "MEANTEXH"],
-    "backpressure": ["背压", "Back", "back", "FT_TACT", "P_EXH", "ExhP_pUpFstCat"],
-    "wg":      ["WG开度", "WG", "wg", "wastegate", "EWGC_rActlPos",
-                "EWGC_rPosDsrd", "BCEW_rDesWGPos"],
-    "airflow": ["进气流量", "AirFlow", "AFS_dm", "air", "流量"],
-    "power":   ["修正功率", "CorrBrkPwr", "CorrBrkPwrEWG", "功率", "Power", "POWER", "BrakePower"],
-    "intake_temp": ["进气温度", "进气歧管温度", "T_Intake", "T_AIR", "T_AIR_IN",
-                    "T_ACS"],
+    "turbo_speed": ["TURBOSPEED_Avg", "TURBOSPEED", "增压器转速",
+                    "Trbch_N", "TurboSpeed", "涡轮转速"],
+    "boost":   ["BSTC_pActBoostPress_Avg", "BSTC_pActBoostPress",
+                "增压压力", "Boost", "BOOST", "VBOOST", "P3", "P_Intake"],
+    "egt":     ["EXHT_tMnfdTemp_Avg", "EXHT_tMnfdTemp", "排气温度",
+                "EGT", "egt", "exhaust", "T_EXH", "MEANTEXH"],
+    "backpressure": ["ExhP_pUpFstCat_Avg", "ExhP_pUpFstCat",
+                     "背压", "Back", "back", "FT_TACT", "P_EXH"],
+    "wg":      ["EWGC_rActlPos_Avg", "EWGC_rActlPos", "WG开度",
+                "WG", "wg", "wastegate"],
+    "airflow": ["AirFlow_Avg", "AirFlow", "进气流量", "AFS_dm", "air", "流量"],
+    "power":   ["BrakePower_Avg", "BrakePower", "修正功率",
+                "CorrBrkPwr", "CorrBrkPwrEWG", "功率", "Power", "POWER"],
+    "intake_temp": ["AirTemp_Avg", "AirTemp", "进气温度",
+                    "进气歧管温度", "T_Intake", "T_AIR", "T_AIR_IN", "T_ACS"],
     # 燃烧特性相关
-    "cov":       ["COV", "cov", "IMEPCOV", "IMEP1CO", "CoV", "循环变动"],
-    "ai50":      ["AI50", "CA50", "MFB50", "A50", "a50", "AI501", "燃烧相位"],
-    "spark_act": ["SPK_dgActSpkAdv", "点火角", "点火提前角", "SparkAdv", "SPK",
-                  "SPK_dgMainSpkAdv"],
-    "spark_mbt": ["SPK_dgMBTSpkAdv", "MBT", "MBTSpkAdv", "mbt"],
-    "spark_delta": ["SPK_dgDltFromMBT", "DltFromMBT", "dltFromMBT", "退角",
-                    "点火退角"],
-    "knock":     ["Knock", "KNK", "knock", "爆震", "knockWnd"],
+    "cov":       ["IMEP1CO_Avg", "IMEP1CO", "COV", "cov",
+                  "IMEPCOV", "CoV", "循环变动"],
+    "ai50":      ["AI501_Avg", "AI501", "AI50", "CA50", "MFB50",
+                  "A50", "a50", "燃烧相位"],
+    "spark_act": ["SPK_dgActSpkAdv_Avg", "SPK_dgActSpkAdvAvg_Avg",
+                  "SPK_dgActSpkAdv", "点火角", "点火提前角",
+                  "SparkAdv", "SPK_dgMainSpkAdv"],
+    "spark_mbt": ["SPK_dgMBTSpkAdv_Avg", "SPK_dgMBTSpkAdvAvg_Avg",
+                  "SPK_dgMBTSpkAdv", "MBTSpkAdv"],
+    "spark_delta": ["SPK_dgDltFromMBT_Avg", "SPK_dgDltFromMBT",
+                    "DltFromMBT", "dltFromMBT", "退角", "点火退角"],
+    "knock":     ["knockWndStrAng_Avg", "knockWndStrAng", "Knock",
+                  "KNK", "knock", "爆震", "knockWnd"],
     "vvt":       ["VVT", "vvt", "VCT", "Cam", "cam", "进气门", "排气门",
                   "CamPhs", "CamPos"],
-    "fuel_flow": ["Fuel_FuelConsume", "FuelConsume", "FuelMassFlow",
-                  "燃油消耗量", "FuelFlow", "油耗量"],
-    "imep":      ["IMEP", "imep", "Pmi", "平均有效压力"],
+    "fuel_flow": ["Fuel_FuelConsume_Avg", "Fuel_FuelConsume",
+                  "FuelConsume", "FuelMassFlow", "燃油消耗量",
+                  "FuelFlow", "油耗量"],
+    "imep":      ["IMEP1_Avg", "IMEPH1_Avg", "IMEPL1_Avg",
+                  "Pmi", "平均有效压力"],
 }
 
 # ────────────────────────────────────────────────────────────
@@ -1865,7 +1874,7 @@ def _plot_combustion_analysis(group_data: Dict, save_path: str,
 
 
 # ────────────────────────────────────────────────────────────
-# 11. 燃烧参数敏感性分析 (ML 级别)
+# 11. 燃烧参数敏感性分析
 # ────────────────────────────────────────────────────────────
 
 # 可选依赖检测
@@ -1884,7 +1893,6 @@ def analyze_combustion_sensitivity(
     encoding: str = 'gbk',
     header_rows: int = 5,
     skip_time_cols: int = 3,
-    save_plots: Optional[str] = None,
 ) -> Dict:
     """燃烧参数敏感性分析 (ML 级别) — 多方法量化控制参数对 BSFC/COV 的影响。
 
@@ -1902,7 +1910,6 @@ def analyze_combustion_sensitivity(
         encoding: CSV 编码 (默认 gbk)
         header_rows: CSV 跳过表头行数
         skip_time_cols: CSV 跳过时间戳列数
-        save_plots: 图表保存目录路径，None 则不保存
 
     Returns:
         Dict 包含 report, feature_importance, combustion_baseline,
@@ -2436,227 +2443,9 @@ def _build_ml_sensitivity_report(
     return "\n".join(lines)
 
 
-def _plot_ml_sensitivity(
-    rpm, torque, features, bsfc, cov, valid_bsfc, valid_cov,
-    pearson, spearman, mi, feature_importance, rf_imp, rf_perm,
-    rpm_analysis, load_zone_analysis, partial_dependence,
-    feature_config, feature_keys, save_dir, has_sklearn,
-):
-    """绘制 ML 级敏感性分析图表。"""
-    _setup_chinese_font()
-    import os
-    Path(save_dir).mkdir(parents=True, exist_ok=True)
-    nf = len(feature_keys)
-    cn_short = {'ai50': 'AI50', 'spark_act': '点火角', 'spark_delta': '退角',
-                'knock': '爆震', 'vvt': 'VVT', 'egt': '排温',
-                'boost': '增压', 'imep': 'IMEP'}
-
-    # ─── 1. Pearson + Spearman 对比 ───
-    fig, axes = plt.subplots(1, 2, figsize=(max(10, nf * 1.4), 6))
-    for ax_i, (target_name, corr_p) in enumerate([("BSFC", pearson.get("BSFC")),
-                                                   ("COV", pearson.get("COV"))]):
-        ax = axes[ax_i]
-        if corr_p is None:
-            ax.text(0.5, 0.5, f'无 {target_name} 数据', ha='center', va='center',
-                    transform=ax.transAxes, fontsize=12)
-            ax.set_title(f'{target_name}')
-            continue
-        x = np.arange(nf)
-        w = 0.35
-        p_vals = [corr_p.get(fk, 0) for fk in feature_keys]
-        s_vals = [spearman.get(target_name, {}).get(fk, 0) if spearman.get(target_name) else 0
-                  for fk in feature_keys]
-        ax.bar(x - w/2, p_vals, w, label='Pearson', color='#1f77b4', alpha=0.8)
-        ax.bar(x + w/2, s_vals, w, label='Spearman', color='#ff7f0e', alpha=0.8)
-        ax.axhline(0, color='black', linewidth=0.5)
-        ax.set_xticks(x)
-        ax.set_xticklabels([cn_short.get(fk, fk) for fk in feature_keys], rotation=30, ha='right')
-        ax.set_ylabel('r')
-        ax.set_title(f'{target_name}  Pearson vs Spearman')
-        ax.legend(fontsize=8)
-        ax.grid(True, alpha=0.3, axis='y')
-    plt.tight_layout()
-    fig.savefig(os.path.join(save_dir, "pearson_spearman.png"), dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"Chart saved: {os.path.join(save_dir, 'pearson_spearman.png')}")
-
-    # ─── 2. 特征重要性 (RF + 综合融合) ───
-    if has_sklearn and feature_importance:
-        fig, ax = plt.subplots(figsize=(12, 7))
-        top = feature_importance[:min(12, len(feature_importance))]
-        labels = [f"{fi['feature_cn']}" for fi in top]
-        scores = [fi['aggregate_score'] for fi in top]
-        colors = []
-        for fi in top:
-            p_b = fi.get('pearson_BSFC') or 0
-            p_c = fi.get('pearson_COV') or 0
-            if abs(p_b) > abs(p_c): colors.append('#ff7f0e')
-            else: colors.append('#2ca02c')
-        ax.barh(range(len(top)), scores, color=colors, alpha=0.8)
-        for i, fi in enumerate(top):
-            detail_parts = []
-            for t in ["BSFC", "COV"]:
-                p = fi.get(f"pearson_{t}")
-                rf_v = fi.get(f"rf_impurity_{t}")
-                if p is not None:
-                    detail_parts.append(f"r({t})={p:+.2f}")
-                if rf_v is not None:
-                    detail_parts.append(f"RF({t})={rf_v:.3f}")
-            ax.text(scores[i] + 0.01, i, "  ".join(detail_parts), va='center', fontsize=7)
-        ax.set_yticks(range(len(top)))
-        ax.set_yticklabels(labels)
-        ax.set_xlabel('综合重要性 (Pearson + Spearman + MI + RF)')
-        ax.set_title('燃烧参数综合特征重要性排名')
-        ax.invert_yaxis()
-        ax.grid(True, alpha=0.3, axis='x')
-        from matplotlib.patches import Patch
-        legend_elements = [
-            Patch(facecolor='#ff7f0e', alpha=0.8, label='BSFC 主导'),
-            Patch(facecolor='#2ca02c', alpha=0.8, label='COV 主导'),
-        ]
-        ax.legend(handles=legend_elements, loc='lower right', fontsize=9)
-        plt.tight_layout()
-        fig.savefig(os.path.join(save_dir, "feature_importance.png"), dpi=150, bbox_inches='tight')
-        plt.close()
-        print(f"Chart saved: {os.path.join(save_dir, 'feature_importance.png')}")
-
-    # ─── 3. RPM 条件热力图 ───
-    if len(rpm_analysis) >= 2:
-        for target_name in ["BSFC", "COV"]:
-            bands = list(rpm_analysis.keys())
-            matrix, valid_fks = [], []
-            for fk in feature_keys:
-                row = [rpm_analysis[b]["correlations"].get(target_name, {}).get(fk, 0) for b in bands]
-                if any(abs(v) > 0.03 for v in row):
-                    matrix.append(row)
-                    valid_fks.append(fk)
-            if not matrix: continue
-            fig, ax = plt.subplots(figsize=(max(6, len(bands) * 2.2), max(4, len(valid_fks) * 0.7)))
-            im = ax.imshow(matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
-            ax.set_xticks(range(len(bands)))
-            ax.set_xticklabels([b.replace(" (<", "\n<") for b in bands], fontsize=9)
-            ax.set_yticks(range(len(valid_fks)))
-            ax.set_yticklabels([cn_short.get(fk, fk) for fk in valid_fks])
-            for i in range(len(valid_fks)):
-                for j in range(len(bands)):
-                    v = matrix[i][j]
-                    ax.text(j, i, f'{v:+.2f}', ha='center', va='center', fontsize=8,
-                            color='white' if abs(v) > 0.4 else 'black')
-            plt.colorbar(im, ax=ax, label='Pearson r')
-            ax.set_title(f'{target_name} — RPM 条件敏感性')
-            plt.tight_layout()
-            fig.savefig(os.path.join(save_dir, f"rpm_{target_name}.png"), dpi=150, bbox_inches='tight')
-            plt.close()
-            print(f"Chart saved: {os.path.join(save_dir, f'rpm_{target_name}.png')}")
-
-    # ─── 4. 负荷分区热力图 ───
-    if len(load_zone_analysis) >= 2:
-        for target_name in ["BSFC", "COV"]:
-            zones = list(load_zone_analysis.keys())
-            matrix, valid_fks = [], []
-            for fk in feature_keys:
-                row = [load_zone_analysis[z]["correlations"].get(target_name, {}).get(fk, 0) for z in zones]
-                if any(abs(v) > 0.03 for v in row):
-                    matrix.append(row)
-                    valid_fks.append(fk)
-            if not matrix: continue
-            fig, ax = plt.subplots(figsize=(max(6, len(zones) * 2.2), max(4, len(valid_fks) * 0.7)))
-            im = ax.imshow(matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
-            ax.set_xticks(range(len(zones)))
-            ax.set_xticklabels(zones, rotation=30, ha='right', fontsize=9)
-            ax.set_yticks(range(len(valid_fks)))
-            ax.set_yticklabels([cn_short.get(fk, fk) for fk in valid_fks])
-            for i in range(len(valid_fks)):
-                for j in range(len(zones)):
-                    v = matrix[i][j]
-                    ax.text(j, i, f'{v:+.2f}', ha='center', va='center', fontsize=8,
-                            color='white' if abs(v) > 0.4 else 'black')
-            plt.colorbar(im, ax=ax, label='Pearson r')
-            ax.set_title(f'{target_name} — 负荷分区敏感性')
-            plt.tight_layout()
-            fig.savefig(os.path.join(save_dir, f"load_zone_{target_name}.png"), dpi=150, bbox_inches='tight')
-            plt.close()
-            print(f"Chart saved: {os.path.join(save_dir, f'load_zone_{target_name}.png')}")
-
-    # ─── 5. 偏依赖图 ───
-    if partial_dependence:
-        for target_name, pd_data in partial_dependence.items():
-            n_pd = len(pd_data)
-            if n_pd == 0: continue
-            cols = min(3, n_pd)
-            rows = (n_pd + cols - 1) // cols
-            fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
-            if rows * cols == 1: axes = np.array([[axes]])
-            elif rows == 1: axes = axes.reshape(1, -1)
-            elif cols == 1: axes = axes.reshape(-1, 1)
-            for idx, (fk, pd_d) in enumerate(pd_data.items()):
-                ax = axes[idx // cols, idx % cols]
-                ax.plot(pd_d["x"], pd_d["y"], 'b-', linewidth=2)
-                ax.fill_between(pd_d["x"], pd_d["y"], alpha=0.15, color='blue')
-                ax.set_xlabel(cn_short.get(fk, fk))
-                ax.set_ylabel(target_name)
-                ax.set_title(f'{feature_config.get(fk, fk)} → {target_name}')
-                ax.grid(True, alpha=0.3)
-            for idx in range(n_pd, rows * cols):
-                axes[idx // cols, idx % cols].set_visible(False)
-            plt.suptitle(f'{target_name} 偏依赖图 (Partial Dependence)', fontsize=14)
-            plt.tight_layout()
-            fig.savefig(os.path.join(save_dir, f"partial_dependence_{target_name}.png"),
-                        dpi=150, bbox_inches='tight')
-            plt.close()
-            print(f"Chart saved: {os.path.join(save_dir, f'partial_dependence_{target_name}.png')}")
-
-    # ─── 6. 关键散点图 (top 4 关系) ───
-    top_rels = []
-    for fi in feature_importance[:4]:
-        for t in ["BSFC", "COV"]:
-            p = fi.get(f"pearson_{t}")
-            if p is not None and abs(p) > 0.05:
-                top_rels.append((fi["feature"], t))
-                break
-    top_rels = top_rels[:4]
-    if top_rels:
-        n_rows = (len(top_rels) + 1) // 2
-        fig, axes = plt.subplots(n_rows, 2, figsize=(12, 5 * n_rows))
-        if n_rows == 1: axes = axes.reshape(1, -1)
-        for idx, (fk, target_name) in enumerate(top_rels):
-            ax = axes[idx // 2, idx % 2]
-            fv = features[fk]
-            target = bsfc if target_name == "BSFC" else cov
-            valid = valid_bsfc if target_name == "BSFC" else valid_cov
-            joint = valid & ~np.isnan(fv) & (fv > -1e6) & (fv < 1e6)
-            if joint.sum() < 3:
-                ax.text(0.5, 0.5, '数据不足', ha='center', va='center', transform=ax.transAxes)
-                continue
-            sc = ax.scatter(fv[joint], target[joint], c=torque[joint],
-                            cmap='viridis', s=15, alpha=0.6)
-            plt.colorbar(sc, ax=ax, label='扭矩 (Nm)')
-            try:
-                z = np.polyfit(fv[joint], target[joint], 1)
-                xx = np.linspace(fv[joint].min(), fv[joint].max(), 100)
-                ax.plot(xx, np.polyval(z, xx), 'r--', alpha=0.7, linewidth=1.5)
-            except Exception: pass
-            p_val = pearson.get(target_name, {}).get(fk, 0) if pearson.get(target_name) else 0
-            s_val = spearman.get(target_name, {}).get(fk, 0) if spearman.get(target_name) else 0
-            ax.set_xlabel(cn_short.get(fk, fk))
-            ax.set_ylabel(target_name)
-            ax.set_title(f'{feature_config.get(fk, fk)} vs {target_name}  '
-                         f'(r={p_val:+.3f}, ρ={s_val:+.3f})', fontsize=10)
-            ax.grid(True, alpha=0.3)
-        for idx in range(len(top_rels), n_rows * 2):
-            axes[idx // 2, idx % 2].set_visible(False)
-        plt.tight_layout()
-        fig.savefig(os.path.join(save_dir, "key_scatter.png"), dpi=150, bbox_inches='tight')
-        plt.close()
-        print(f"Chart saved: {os.path.join(save_dir, 'key_scatter.png')}")
-
-    print(f"\n敏感性分析图表已保存到: {save_dir}")
-
-
 # ────────────────────────────────────────────────────────────
 # 12. 一站式单发动机分析 (含燃烧特性)
 # ────────────────────────────────────────────────────────────
-
 def single_engine_full_analysis(
     filepath: str,
     encoding: str = 'gbk',

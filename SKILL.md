@@ -20,12 +20,12 @@ description: Analyze engine dyno/bench test data — combustion characteristics 
 
 ## 资源导航
 
-- 核心分析模块：scripts/engine_analysis.py`（3214 行, 43 个函数）
-- ETAS INCA 信号命名：按需读取 `references/etas_inca_signals.md`
+- 核心分析模块：`scripts/engine_analysis.py`
+- ETAS INCA 精确列名：`references/etas_inca_signals.md`
 - 场景化工作流与示例：按需读取 `references/workflows.md`
 - 阈值、公式、CSV 处理和列名参考：按需读取 `references/thresholds_and_formulas.md`
 - B15HE 基准数据：`assets/baseline_engine_database/260108_B15HE_BSFC_发动机标准数据_v1.0.xlsx`
-- **列名检测修复方案**：`references/column_detection_fixes.md`（误匹配时查阅）
+- 列名检测修复方案：`references/workflows.md`（「常见问题」章节）
 
 只在需要对应细节时读取 reference 文件；优先从本文件获得入口和决策路径。
 
@@ -135,13 +135,31 @@ result = compare_with_standard(
 
 `detect_column()` 和 `detect_all_columns()` 支持中英文混排、换行列名和 ETAS INCA `_Avg` 后缀。扭矩和功率优先匹配修正值，例如 `修正扭矩`、`CorrTorqueEWG`、`修正功率`、`CorrBrkPwrEWG`，再匹配原始值。
 
-如自动检测不符合用户意图，手动传入列名：
+INCA 数据优先用精确全名（如 `TURBOSPEED_Avg`、`IMEP1_Avg`）做 Phase 1 匹配，中文/缩写作 fallback。禁止裸 `IMEP`/`SPK`/`MBT`/`turbine` 等跨信号边界的短模式。
+
+如自动检测不符合用户意图，**首选方案是手动构建 `col_map` 字典**直接使用原始列名，完全绕过自动检测：
 
 ```python
-rpm_col = "DynoSpeed_Avg"
-torque_col = "DynoTorque_Avg"
-results = compare_turbochargers(df_a, df_b, rpm_col=rpm_col, torque_col=torque_col)
+col_map = {
+    'rpm': 'DynoSpeed_Avg',
+    'torque': 'CorrTorqueEWG_Avg',
+    'power': 'CorrBrkPwrEWG_Avg',
+    'bsfc': 'BSFC_Avg',
+    'turbo_speed': 'TURBOSPEED_Avg',
+    'boost': 'BSTC_pActBoostPress_Avg',
+    'egt': 'EXHT_tMnfdTemp_Avg',
+    'cov': 'IMEP1CO_Avg',
+    'ai50': 'AI501_Avg',
+    'spark_act': 'SPK_dgActSpkAdvAvg_Avg',
+    'spark_mbt': 'SPK_dgMBTSpkAdv_Avg',
+    'spark_delta': 'SPK_dgDltFromMBT_Avg',
+    'knock': 'KNOC_dgTotalRTDAvg_Avg',
+    'vvt': 'VVT1_dgCurPosOffs_Avg',
+    'imep': 'IMEP1_Avg',
+}
 ```
+
+后续分析直接通过 `df[col_map['bsfc']]` 引用，不再依赖检测结果。备选方案：手动传入单个列名，或运行时动态修正 `COLUMN_PATTERNS`（见 `references/workflows.md`「常见问题」章节）。
 
 详细信号映射见 `references/etas_inca_signals.md` 和 `references/thresholds_and_formulas.md`。
 
@@ -151,17 +169,17 @@ results = compare_turbochargers(df_a, df_b, rpm_col=rpm_col, torque_col=torque_c
 - 单发动机性能 + 燃烧 + 高原综合分析：使用 `single_engine_full_analysis()`。
 - 只做燃烧诊断：先检测 `cov`、`ai50`、`spark_act`、`spark_mbt`、`spark_delta`、`knock`、`vvt`、`imep`，再使用 `single_engine_combustion_analysis()`。
 - 只做标准对标：使用 `load_standard_data()` 和 `compare_with_standard()`。
-- 需要燃烧敏感性或机器学习分析：使用 `analyze_combustion_sensitivity()`。输出 markdown 表格报告，不生成图表。详细见 `references/workflows.md`。
+- 需要燃烧敏感性或机器学习分析：使用 `analyze_combustion_sensitivity()`。只输出 markdown 表格，不生成任何图表。详细见 `references/workflows.md`。
 
 ## 关键注意事项
 
-- **列名自动检测可能误匹配**：尤其是 turbo_speed（误匹配涡轮前压力）、spark_act（误匹配温度偏移）、spark_mbt（误匹配排温）、imep（误匹配 COV 列 IMEP1CO）。出现异常数值（如增压器转速 199 rpm）或全 1.0 相关时，检查列名检测。修复方案见 references/column_detection_fixes.md，可运行时动态修正 COLUMN_PATTERNS。
+- 列名自动检测可能误匹配：turbo_speed / spark_act / spark_mbt / imep 根因为 COLUMN_PATTERNS 中短模式跨越信号边界（`turbine`→涡轮压力，`SPK`→温度偏移，`MBT`→排温，`IMEP`→COV）。应以 `references/etas_inca_signals.md` 精确全名为首位模式。修复方案见 `references/workflows.md`「常见问题」章节。
 - 高原转速评估前必须确认增压器转速限制值；默认值只是占位。
 - BSFC 异常点，尤其 1000rpm，分析时应结合数据质量判断。
 - 增压压力、排气背压、绝对压力和表压要确认单位和含义，不要混用。
 - CSV 乱码优先尝试 encoding=gbk，失败再尝试 latin-1。
 - 标准数据至少需要转速和扭矩列；功率和 BSFC 缺失时只输出可比维度。
-- 输出要求：每次分析必须将所有报告和图表写入同一个时间戳文件夹，禁止分散到多个文件夹。必须保存综合报告 .md 和敏感性报告 .md。答复时给出文件夹路径和文件清单。
+- 输出要求：每次分析必须将所有报告写入同一个时间戳文件夹，禁止分散到多个文件夹。必须保存综合报告 .md，如有敏感性分析则保存敏感性报告 .md。图表为选配（save_plot 参数），不强制生成。答复时给出文件夹路径和文件清单。
 
 ## CLI 快速调试
 
@@ -172,9 +190,13 @@ python ~/AppData/Local/hermes/skills/engineering/engine-data-analysis/scripts/en
 
 ## 输出文件夹管理
 
-**每次分析必须在数据文件所在目录下创建 `YYYYMMDD-HHMMSS` 时间戳文件夹**，所有输出（报告 `.md`、图表 `.png`）写入该文件夹，答复时给出路径。禁止复用旧文件夹，禁止分析完成后补建。具体实现代码见 `references/workflows.md` →「前置步骤」。
+**每次分析必须在数据文件所在目录下创建 `YYYYMMDD-HHMMSS` 时间戳文件夹**，所有输出（报告 `.md`，选配图表 `.png`）写入该文件夹，答复时给出路径。禁止复用旧文件夹，禁止分析完成后补建。具体实现代码见 `references/workflows.md` →「前置步骤」。
 
 ## 输出要求
+
+**⚠ 报告已由内置函数生成**：`generate_text_report()`、`_build_combustion_report()`、
+`_build_ml_sensitivity_report()` 等函数已在返回 dict 的 `"report"` 键中生成完整 markdown。
+**直接从该键取字符串保存为 .md，禁止自行重写、补充或重新排版。**
 
 答复用户时优先给出：
 
